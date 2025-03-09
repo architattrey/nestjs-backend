@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
 import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,6 +19,8 @@ export class UsersService {
 
         @InjectRepository(UserRole)// Injects the repository for the UserRole entity, allowing us to manage user-role relationships.
         private userRolesRepository: Repository<UserRole>,
+
+        private readonly dataSource: DataSource // Inject DataSource for transaction
     ) { }
 
     // Create a new user
@@ -50,44 +52,65 @@ export class UsersService {
         await this.usersRepository.remove(user); // Removes the user from the database.
     }
 
-    // Assign roles to a user
-    async assignRoles(id: string, assignRolesDto: AssignRolesDto): Promise<User> {
-        const user = await this.findOne(id);// Finds the user by ID.
-        const roles = await this.rolesRepository.findByIds(assignRolesDto.roleIds);// Finds roles based on the provided role IDs.
+    // Assign roles to a user (removes old ones first)
+    async assignRoles(id: string, assignRolesDto: AssignRolesDto): Promise<User | null> {
+        const user = await this.usersRepository.findOne({ where: { id: Number(id) } }); // Finds the user by ID
+        if (!user) throw new NotFoundException('User not found');
 
-        if (!roles || roles.length === 0) {
-            throw new NotFoundException('Roles not found');// Throws an exception if no roles were found.
+        const roles = await this.rolesRepository.findByIds(assignRolesDto.roleIds); // Finds roles based on the provided role IDs
+        if (!roles || roles.length === 0) throw new NotFoundException('Roles not found');
+
+        let existingRoles: UserRole[] = []; // Declare existingRoles outside the try block to access in the catch block.
+
+        // Start a transaction using queryRunner
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // Backup existing roles in case of rollback
+            existingRoles = await this.userRolesRepository.find({ where: { user: { id: Number(id) } } });
+
+            // Remove old roles from the user
+            await queryRunner.manager
+                .createQueryBuilder()
+                .relation(User, 'roles')
+                .of(user)
+                .remove(user.roles); // Removes old roles using relation mapping
+
+            // Create new user-role associations
+            const userRoles = roles.map(role => {
+                const userRole = new UserRole(); // Creates a new UserRole entity for each role
+                userRole.user = user; // Links the role to the user
+                userRole.role = role; // Links the role entity
+                return userRole;
+            });
+
+            // Save new roles to the user-role relationship table
+            await queryRunner.manager.save(UserRole, userRoles);
+
+            // Commit the transaction
+            await queryRunner.commitTransaction();
+
+            // Return the updated user with roles after successful assignment
+            return this.usersRepository.findOne({
+                where: { id: Number(id) }, relations: ['roles']
+            });
+
+        } catch (error) {
+            // Rollback the transaction in case of failure
+            await queryRunner.rollbackTransaction();
+
+            // Restore previous roles in case of failure
+            if (existingRoles.length > 0) {
+                await queryRunner.manager.save(UserRole, existingRoles);
+            }
+
+            throw new InternalServerErrorException('Failed to assign roles');
+        } finally {
+            // Release the queryRunner
+            await queryRunner.release();
         }
-
-        // Associate roles with the user
-        const userRoles = roles.map(role => {
-            const userRole = new UserRole();// Creates a new UserRole entity for each role.
-            userRole.user = user;// Links the role to the user.
-            userRole.role = role; // Links the role entity.
-            return userRole;
-        });
-
-        await this.userRolesRepository.save(userRoles); // Saves the user-role associations to the database.
-        return this.findOne(id); // Return the updated user
     }
 
-    // Remove a role from a user
-    async removeRole(id: string, roleId: string): Promise<void> {
-        const user = await this.findOne(id); // Finds the user by ID.
-        const role = await this.rolesRepository.findOne({ where: { id: Number(roleId) } }); // Finds the role by ID.
-
-        if (!role) {
-            throw new NotFoundException('Role not found');// Throws an exception if the role is not found.
-        }
-        // Find the user-role association to remove
-        const userRole = await this.userRolesRepository.findOne({
-            where: { user: user, role: role },
-        });
-
-        if (userRole) {
-            await this.userRolesRepository.remove(userRole);// Removes the user-role association.
-        } else {
-            throw new NotFoundException('Role not assigned to user');// Throws an exception if the role is not assigned to the user.
-        }
-    }
 }
