@@ -6,7 +6,7 @@ import { Role } from '../roles/entities/role.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AssignRolesDto } from './dto/assign-roles.dto';
-import { UserRole } from '../user_roles/user-roles.entity';
+import { UserRole } from '../user_roles/entities/user_roles.entity';
 
 @Injectable()// Marks the service as injectable, allowing it to be injected into other parts of the application (e.g., controllers).
 export class UsersService {

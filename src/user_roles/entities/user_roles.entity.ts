@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, ManyToOne } from 'typeorm';
-import { User } from '../users/entities/user.entity';
-import { Role } from '../roles/entities/role.entity';
+import { User } from '../../users/entities/user.entity';
+import { Role } from '../../roles/entities/role.entity';
 
 @Entity('user_roles')// Marks this class as a TypeORM entity, and 'user_roles' is the table name in the database
 export class UserRole {
