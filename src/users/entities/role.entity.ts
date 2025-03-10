@@ -7,4 +7,7 @@ export class Role {
 
   @Column({ unique: true })
   name: string;
+
+  @Column({ default: true })
+  isActive: boolean; // Status of the role
 }

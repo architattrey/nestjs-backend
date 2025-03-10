@@ -19,7 +19,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             }),
         }),
     ],
-    providers: [AuthService, LocalStrategy, JwtStrategy],
+    providers: [AuthService, LocalStrategy, JwtStrategy], // Provide it globally
     controllers: [AuthController],
     exports: [AuthService],
 })

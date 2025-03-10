@@ -9,11 +9,11 @@ export const databaseConfig = {
     inject: [ConfigService],
     useFactory: (configService: ConfigService): TypeOrmModuleOptions => ({
         type: 'postgres',
-        host: configService.get<string>('DATABASE_HOST'), // Read from .env file
-        port: configService.get<number>('DATABASE_PORT'),
-        username: configService.get<string>('DATABASE_USER'),
-        password: configService.get<string>('DATABASE_PASSWORD'),
-        database: configService.get<string>('DATABASE_NAME'),
+        host: configService.get<string>('DB_HOST'), // Read from .env file
+        port: configService.get<number>('DB_PORT'),
+        username: configService.get<string>('DB_USER'),
+        password: configService.get<string>('DB_PASSWORD'),
+        database: configService.get<string>('DB_NAME'),
         entities: [User, Role, Document],
         synchronize: true, // Set to false in production; use migrations instead
         logging: true,

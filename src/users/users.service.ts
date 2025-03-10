@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -25,6 +25,10 @@ export class UsersService {
 
     // Create a new user
     async create(createUserDto: CreateUserDto): Promise<User> {
+        const existingUser = await this.usersRepository.findOne({ where: { email: createUserDto.email } });
+        if (existingUser) {
+            throw new BadRequestException('Email is already in use');
+        }
         const user = this.usersRepository.create(createUserDto);// Creates a new user entity using the provided DTO.
         return this.usersRepository.save(user);// Saves the new user to the database.
     }
@@ -51,7 +55,6 @@ export class UsersService {
         const user = await this.findOne(id); // Finds the user by ID.
         await this.usersRepository.remove(user); // Removes the user from the database.
     }
-
     // Assign roles to a user (removes old ones first)
     async assignRoles(id: string, assignRolesDto?: AssignRolesDto): Promise<User | null> {
         const user = await this.usersRepository.findOne({ where: { id: Number(id) } }); // Finds the user by ID
@@ -99,6 +102,8 @@ export class UsersService {
             });
 
         } catch (error) {
+            console.error('Error assigning roles:', error);
+
             // Rollback the transaction in case of failure
             await queryRunner.rollbackTransaction();
 
