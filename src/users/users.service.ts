@@ -53,11 +53,12 @@ export class UsersService {
     }
 
     // Assign roles to a user (removes old ones first)
-    async assignRoles(id: string, assignRolesDto: AssignRolesDto): Promise<User | null> {
+    async assignRoles(id: string, assignRolesDto?: AssignRolesDto): Promise<User | null> {
         const user = await this.usersRepository.findOne({ where: { id: Number(id) } }); // Finds the user by ID
         if (!user) throw new NotFoundException('User not found');
 
-        const roles = await this.rolesRepository.findByIds(assignRolesDto.roleIds); // Finds roles based on the provided role IDs
+        let roleIds = assignRolesDto?.roleIds ?? [3]; // Assign given roles OR default to "viewer" (ID: 3)
+        const roles = await this.rolesRepository.findByIds(roleIds); // Finds roles based on the provided role IDs
         if (!roles || roles.length === 0) throw new NotFoundException('Roles not found');
 
         let existingRoles: UserRole[] = []; // Declare existingRoles outside the try block to access in the catch block.

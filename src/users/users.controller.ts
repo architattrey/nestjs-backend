@@ -41,12 +41,4 @@ export class UsersController {
     ) {
         return this.usersService.assignRoles(id, assignRolesDto);// Calls the assignRoles method of UsersService to assign roles to the user
     }
-    // New endpoint to remove a role from a user
-    @Delete(':id/roles/:roleId')// DELETE request to /users/:id/roles/:roleId
-    async removeRole(
-        @Param('id') id: string,
-        @Param('roleId') roleId: string,
-    ) {
-        return this.usersService.removeRole(id, roleId); // Calls the removeRole method of UsersService to remove the specified role from the user
-    }
 }
