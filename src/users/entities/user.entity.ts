@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable } from 'typeorm';
-import { Role } from '../../roles/entities/role.entity';
+import { Role } from './role.entity';
 
 
 @Entity('users') // Define the 'users' table in the database

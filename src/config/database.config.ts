@@ -1,9 +1,8 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from '../users/entities/user.entity';
-import { Role } from '../roles/entities/role.entity';
-import { UserRole } from '../user_roles/entities/user_roles.entity';
-//import { Document } from '../documents/entities/document.entity';
+import { Role } from '../users/entities/role.entity';
+import { Document } from '../documents/entities/document.entity';
 
 export const databaseConfig = {
     imports: [ConfigModule],
@@ -15,7 +14,7 @@ export const databaseConfig = {
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [User, Role, UserRole, Document],
+        entities: [User, Role, Document],
         synchronize: true, // Set to false in production; use migrations instead
         logging: true,
     }),
