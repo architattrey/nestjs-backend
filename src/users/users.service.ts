@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, InternalServerErrorException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
@@ -33,7 +33,7 @@ export class UsersService {
         // Hash the password before saving
         const salt = await bcrypt.genSalt(10);
         createUserDto.password = await bcrypt.hash(createUserDto.password, salt);
-        
+
         const user = this.usersRepository.create(createUserDto);// Creates a new user entity using the provided DTO.
         return this.usersRepository.save(user);// Saves the new user to the database.
     }
@@ -62,66 +62,66 @@ export class UsersService {
     }
     // Assign roles to a user (removes old ones first)
     async assignRoles(id: string, assignRolesDto?: AssignRolesDto): Promise<User | null> {
-        const user = await this.usersRepository.findOne({ where: { id: Number(id) } }); // Finds the user by ID
+        Logger.log(`Assigning roles to user with ID: ${id}`);
+    
+        const user = await this.usersRepository.findOne({ where: { id: Number(id) } });
         if (!user) throw new NotFoundException('User not found');
-
-        let roleIds = assignRolesDto?.roleIds ?? [3]; // Assign given roles OR default to "viewer" (ID: 3)
-        const roles = await this.rolesRepository.findByIds(roleIds); // Finds roles based on the provided role IDs
+    
+        let roleIds = assignRolesDto?.roleIds ?? [3]; // Default to "viewer" (ID: 3)
+        
+        const roles = await this.rolesRepository.find({
+            where: roleIds.map(id => ({ id })),
+        });
+    
         if (!roles || roles.length === 0) throw new NotFoundException('Roles not found');
-
-        let existingRoles: UserRole[] = []; // Declare existingRoles outside the try block to access in the catch block.
-
-        // Start a transaction using queryRunner
+    
+        let existingRoles: UserRole[] = [];
+    
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
-
+    
         try {
-            // Backup existing roles in case of rollback
-            existingRoles = await this.userRolesRepository.find({ where: { user: { id: Number(id) } } });
-
-            // Remove old roles from the user
+            // Backup existing roles for rollback
+            existingRoles = await this.userRolesRepository.find({ where: { user_id: Number(id) } });
+    
+            // ** Delete existing roles from user_roles table**
             await queryRunner.manager
                 .createQueryBuilder()
-                .relation(User, 'roles')
-                .of(user)
-                .remove(user.roles); // Removes old roles using relation mapping
-
-            // Create new user-role associations
+                .delete()
+                .from(UserRole)
+                .where('user_id = :userId', { userId: Number(id) })
+                .execute();
+    
+            // Create new user-role mappings
             const userRoles = roles.map(role => {
-                const userRole = new UserRole(); // Creates a new UserRole entity for each role
-                userRole.user = user; // Links the role to the user
-                userRole.role = role; // Links the role entity
+                const userRole = new UserRole();
+                userRole.user_id = user.id;
+                userRole.role_id = role.id;
                 return userRole;
             });
-
-            // Save new roles to the user-role relationship table
+    
             await queryRunner.manager.save(UserRole, userRoles);
-
-            // Commit the transaction
+    
             await queryRunner.commitTransaction();
-
-            // Return the updated user with roles after successful assignment
+    
             return this.usersRepository.findOne({
-                where: { id: Number(id) }, relations: ['roles']
+                where: { id: Number(id) },
+                relations: ['roles'],
             });
-
+    
         } catch (error) {
             console.error('Error assigning roles:', error);
-
-            // Rollback the transaction in case of failure
             await queryRunner.rollbackTransaction();
-
-            // Restore previous roles in case of failure
+    
             if (existingRoles.length > 0) {
                 await queryRunner.manager.save(UserRole, existingRoles);
             }
-
+    
             throw new InternalServerErrorException('Failed to assign roles');
         } finally {
-            // Release the queryRunner
             await queryRunner.release();
         }
     }
-
+    
 }

@@ -1,24 +1,16 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Request, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Request, UploadedFile, UseInterceptors, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { DocumentsService } from './documents.service';
-import { JwtAuthGuard } from '../auth/auth.guard';
+
 
 @Controller('documents')
-@UseGuards(JwtAuthGuard)
-export class DocumentsController {
-    private readonly uploadPath: string;
 
-    constructor(
-        @InjectRepository(Document)
-        private readonly documentsService: DocumentsService,
-        private readonly configService: ConfigService,
-    ) {
-        this.uploadPath = this.configService.get<string>('UPLOADS_PATH', './uploads'); // Default value if not set
-    }
+export class DocumentsController {
+
+
+    constructor( private readonly documentsService: DocumentsService) { }
 
     @Get()
     findAll(@Request() req) {
@@ -28,20 +20,51 @@ export class DocumentsController {
     @Post('upload')
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
-            destination: './upload',//this.uploadPath,
+            destination: './uploads',
             filename: (req, file, cb) => {
-                const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-                cb(null, file.fieldname + '-' + uniqueSuffix + extname(file.originalname));
-            }
-        })
+                const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
+                return cb(null, `${randomName}${extname(file.originalname)}`);
+            },
+        }),
     }))
-    async uploadFile(@UploadedFile() file: Express.Multer.File, @Body() body: { title: string }, @Request() req) {
-        return this.documentsService.uploadDocument(req.user.id, body.title, file.path);
+    
+    async uploadFile(
+        @UploadedFile() file: Express.Multer.File,
+        @Body() body: any,
+        @Request() req
+    ) {
+
+        // Convert `ownerId` to number (as Postman sends it as a string)
+        const ownerId = Number(15);
+        return this.documentsService.uploadOrUpdateDocument(ownerId, body.title, file); // Pass file instead of file.path
     }
 
+
     @Patch(':id')
-    update(@Param('id') id: number, @Body() updateData: { title?: string; content?: string }) {
-        return this.documentsService.update(id, updateData);
+    @UseInterceptors(FileInterceptor('file', {
+        storage: diskStorage({
+            destination: './uploads',
+            filename: (req, file, cb) => {
+                const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
+                return cb(null, `${randomName}${extname(file.originalname)}`);
+            },
+        }),
+    }))
+    async updateFile(
+        @UploadedFile() file: Express.Multer.File,
+        @Body() body: any,
+        @Request() req
+    ) {
+        const documentId = Number(body.documentId);
+        if (isNaN(documentId)) {
+            throw new HttpException('Invalid document ID', HttpStatus.BAD_REQUEST);
+        }
+
+        const ownerId = Number(15);
+
+        if (file) {
+            return this.documentsService.uploadOrUpdateDocument(ownerId, body.title, file, documentId); // Pass file instead of file.path
+        }
     }
 
     @Delete(':id')
@@ -49,3 +72,4 @@ export class DocumentsController {
         return this.documentsService.remove(id);
     }
 }
+

@@ -14,7 +14,7 @@ import { DocumentsModule } from './documents/documents.module';
     TypeOrmModule.forRootAsync(databaseConfig),
     UsersModule,
     AuthModule,
-    //DocumentsModule,
+    DocumentsModule,
   ],
 })
 export class AppModule { }

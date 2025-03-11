@@ -6,8 +6,9 @@ export class Role {
   id: number;
 
   @Column({ unique: true })
-  name: string;
+  name: string;// e.g., 'admin', 'editor', 'viewer'
 
   @Column({ default: true })
   isActive: boolean; // Status of the role
+  
 }

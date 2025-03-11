@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 
-@Entity()
+@Entity('documents')
 export class Document {
     @PrimaryGeneratedColumn()
     id: number;
@@ -16,10 +16,13 @@ export class Document {
     filePath: string; // Store the file path
 
     @Column()
-    ownerId: number;  
+    ownerId: number;
 
     @ManyToOne(() => User, (user) => user.id)
+    @JoinColumn({ name: 'ownerId' })  // Explicitly mapping to user_id
     owner: User;
+
+
 }
 // This entity represents a document, which is associated with a user.
 // The document has an id, title, content, and owner.

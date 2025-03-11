@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryColumn, ManyToOne, JoinColumn  } from 'typeorm';
 import { User } from '../entities/user.entity';
 import { Role } from '../entities/role.entity';
 
@@ -13,10 +13,11 @@ export class UserRole {
 
     // Used onDelete: 'CASCADE' option for a User or Role is deleted, all associated UserRole records will be deleted automatically.
     // Defining the relationship between the 'UserRole' and 'User' entities
-    @ManyToOne(() => User, (user) => user.roles, { onDelete: 'CASCADE' })// Specifies a many-to-one relationship with the User entity
+    @ManyToOne(() => User, (user) => user.roles, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'user_id' })  // Explicitly mapping to user_id
     user: User;
 
-    // Defining the relationship between the 'UserRole' and 'Role' entities
-    @ManyToOne(() => Role, (role) => role.id, { onDelete: 'CASCADE' })// Specifies a many-to-one relationship with the Role entity
+    @ManyToOne(() => Role, (role) => role.id, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'role_id' })  // Explicitly mapping to role_id
     role: Role;
 }

@@ -17,5 +17,7 @@ export const databaseConfig = {
         entities: [User, Role, Document],
         synchronize: true, // Set to false in production; use migrations instead
         logging: true,
+        autoLoadEntities: true,  // This ensures all entities are loaded
+
     }),
 };
