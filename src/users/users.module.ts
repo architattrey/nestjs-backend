@@ -5,7 +5,6 @@ import { UsersController } from './users.controller';
 import { UserRole } from './entities/user_roles.entity';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
- 
 
 @Module({
     imports: [TypeOrmModule.forFeature([UserRole, Role, User])],// Registers the User, UserRole, Role entities with TypeORM so that it can be used by the service

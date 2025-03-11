@@ -1,4 +1,4 @@
-import { IsString, IsEmail, IsNotEmpty, MinLength, Validate } from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, MinLength } from 'class-validator';
 
 export class CreateUserDto {
   // The 'username','email' and 'password' fields will be validated using the class-validator decorators

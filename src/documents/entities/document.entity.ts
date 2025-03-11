@@ -15,8 +15,8 @@ export class Document {
     @Column()
     filePath: string; // Store the file path
 
-    // @Column()
-    // ownerId: number;  
+    @Column()
+    ownerId: number;  
 
     @ManyToOne(() => User, (user) => user.id)
     owner: User;

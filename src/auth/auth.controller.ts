@@ -1,8 +1,11 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Req, Res } from '@nestjs/common';
+
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './local-auth.guard';
 import { UsersService } from '../users/users.service';
 import { RegisterDto } from './dto/register.dto';
+import { Response } from 'express';  // Correct import
+
 
 @Controller('auth')
 export class AuthController {
@@ -25,4 +28,11 @@ export class AuthController {
     async login(@Request() req) {
         return this.authService.login(req.user);
     }
+
+    @Post('logout')
+    async logout(@Res() res: Response) {  // No generics here
+        return this.authService.logout(res);
+    }
+
 }
+

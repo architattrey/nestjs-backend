@@ -13,7 +13,7 @@ export class DocumentsController {
     private readonly uploadPath: string;
 
     constructor(
-       // @InjectRepository(Document)
+        @InjectRepository(Document)
         private readonly documentsService: DocumentsService,
         private readonly configService: ConfigService,
     ) {

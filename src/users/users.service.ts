@@ -7,6 +7,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AssignRolesDto } from './dto/assign-roles.dto';
 import { UserRole } from './entities/user_roles.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()// Marks the service as injectable, allowing it to be injected into other parts of the application (e.g., controllers).
 export class UsersService {
@@ -29,6 +30,10 @@ export class UsersService {
         if (existingUser) {
             throw new BadRequestException('Email is already in use');
         }
+        // Hash the password before saving
+        const salt = await bcrypt.genSalt(10);
+        createUserDto.password = await bcrypt.hash(createUserDto.password, salt);
+        
         const user = this.usersRepository.create(createUserDto);// Creates a new user entity using the provided DTO.
         return this.usersRepository.save(user);// Saves the new user to the database.
     }

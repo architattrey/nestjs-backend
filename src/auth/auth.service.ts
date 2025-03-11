@@ -1,3 +1,5 @@
+import { Request, Req, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -34,5 +36,9 @@ export class AuthService {
         return {
             access_token: this.jwtService.sign(payload),
         };
+    }
+    async logout(@Res() res: Response) {  // No generics here
+        res.clearCookie('jwt'); // Clear the JWT token from cookies
+        return res.json({ message: 'Logout successful' });
     }
 }
