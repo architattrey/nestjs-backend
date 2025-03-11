@@ -62,37 +62,36 @@ export class UsersService {
     }
     // Assign roles to a user (removes old ones first)
     async assignRoles(id: string, assignRolesDto?: AssignRolesDto): Promise<User | null> {
-        Logger.log(`Assigning roles to user with ID: ${id}`);
-    
+        // Find the user by ID, converting string to number  
         const user = await this.usersRepository.findOne({ where: { id: Number(id) } });
         if (!user) throw new NotFoundException('User not found');
-    
-        let roleIds = assignRolesDto?.roleIds ?? [3]; // Default to "viewer" (ID: 3)
-        
+
+        let roleIds = assignRolesDto?.roleIds ?? [3]; // Default role assignment (ID: 3 for "viewer") if no roles are provided
+        // Fetch roles based on provided role IDs
         const roles = await this.rolesRepository.find({
             where: roleIds.map(id => ({ id })),
         });
-    
         if (!roles || roles.length === 0) throw new NotFoundException('Roles not found');
-    
+
         let existingRoles: UserRole[] = [];
-    
+
+        // Create a query runner for transaction handling
         const queryRunner = this.dataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
-    
+
         try {
             // Backup existing roles for rollback
             existingRoles = await this.userRolesRepository.find({ where: { user_id: Number(id) } });
-    
-            // ** Delete existing roles from user_roles table**
+
+            // Delete existing roles from user_roles table
             await queryRunner.manager
                 .createQueryBuilder()
                 .delete()
                 .from(UserRole)
                 .where('user_id = :userId', { userId: Number(id) })
                 .execute();
-    
+
             // Create new user-role mappings
             const userRoles = roles.map(role => {
                 const userRole = new UserRole();
@@ -100,28 +99,27 @@ export class UsersService {
                 userRole.role_id = role.id;
                 return userRole;
             });
-    
+            // Save new user-role associations
             await queryRunner.manager.save(UserRole, userRoles);
-    
-            await queryRunner.commitTransaction();
-    
+            await queryRunner.commitTransaction();  // Commit transaction after successful execution
+            // Return updated user with assigned roles
             return this.usersRepository.findOne({
                 where: { id: Number(id) },
                 relations: ['roles'],
             });
-    
+
         } catch (error) {
-            console.error('Error assigning roles:', error);
+            // Rollback transaction in case of an error
             await queryRunner.rollbackTransaction();
-    
+            // Restore previous roles if backup exists
             if (existingRoles.length > 0) {
                 await queryRunner.manager.save(UserRole, existingRoles);
             }
-    
             throw new InternalServerErrorException('Failed to assign roles');
         } finally {
+             // Release query runner after transaction completion
             await queryRunner.release();
         }
     }
-    
+
 }

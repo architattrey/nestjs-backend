@@ -12,6 +12,8 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) { } // Injecting the UsersService to handle the logic for user-related requests
 
     // Endpoint to create a new user
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN') // Admins can create new users
     @Post()// POST request to /users
     async create(@Body() createUserDto: CreateUserDto) {
         const createUser = await this.usersService.create(createUserDto);
@@ -26,15 +28,13 @@ export class UsersController {
     }
 
     // Endpoint to retrieve a specific user by ID
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('EDITOR', 'ADMIN', 'viewer') // Editors, Admins and viewer can access
+    @UseGuards(JwtAuthGuard)
     @Get(':id')// GET request to /users/:id
     async findOne(@Param('id') id: string) {
         return this.usersService.findOne(id);
     }
     // Endpoint to update a specific user by ID
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN', 'viewer') // Admins and viewer can access
+    @UseGuards(JwtAuthGuard)
     @Put(':id') // PUT request to /users/:id
     async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
         return this.usersService.update(id, updateUserDto);
@@ -42,14 +42,14 @@ export class UsersController {
 
     // Endpoint to delete a specific user by ID
     @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('ADMIN', 'viewer') // Admins and viewer can access
+    @Roles('ADMIN') // Admins and viewer can access
     @Delete(':id')// DELETE request to /users/:id
     async remove(@Param('id') id: string) {
         return this.usersService.remove(id);
     }
     // New endpoint to assign roles to a user
-    //@UseGuards(JwtAuthGuard, RolesGuard)
-   // @Roles('ADMIN') // Admins and viewer can access
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    @Roles('ADMIN') // Admins can access
     @Post('roles/:id') // POST request to /users/:id/roles
     async assignRoles(
         @Param('id') id: string,
