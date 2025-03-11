@@ -49,3 +49,22 @@ This project is a **NestJS-based file upload system** integrated with a **Python
 ├── app.module.ts # Root module
 └── main.ts # Application entry point
 upload_file.py # Python FastAPI server for file uploads```
+
+
+---
+
+## **Setup Instructions**
+
+### **Prerequisites**
+- Node.js (v16 or higher).
+- Python (v3.8 or higher).
+- PostgreSQL database.
+- npm (Node package manager).
+- pip (Python package manager).
+
+---
+
+### **1. Clone the Repository**
+```bash
+git clone https://github.com/architattrey/nestjs-backend.git
+cd nestjs-backend
