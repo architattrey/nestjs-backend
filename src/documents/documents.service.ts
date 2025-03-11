@@ -48,6 +48,8 @@ export class DocumentsService {
 
         try {
             // Sending file to external FastAPI service for processing
+            //using Python backend, via API call.
+
             const response = await lastValueFrom(
                 this.httpService.post('http://127.0.0.1:8000/api/upload', formData, {
                     headers: {
