@@ -1,101 +1,51 @@
-## File Folder Strucrure
-nestjs-backend/
-│── src/
-│   ├── auth/
-│   │   ├── auth.controller.ts
-│   │   ├── auth.module.ts
-│   │   ├── auth.service.ts
-│   │   ├── auth.guard.ts
-│   │   ├── dto/
-│   │   │   ├── login.dto.ts
-│   │   │   ├── register.dto.ts
-│   │   ├── entities/
-│   │   │   ├── auth.entity.ts
-│   ├── users/
-│   │   ├── users.controller.ts
-│   │   ├── users.module.ts
-│   │   ├── users.service.ts
-│   │   ├── dto/
-│   │   │   ├── create-user.dto.ts
-│   │   │   ├── update-user.dto.ts
-│   │   ├── entities/
-│   │   │   ├── user.entity.ts
-│   ├── roles/
-│   │   ├── roles.controller.ts
-│   │   ├── roles.module.ts
-│   │   ├── roles.service.ts
-│   │   ├── entities/
-│   │   │   ├── role.entity.ts
-│   ├── user-roles/
-│   │   ├── user-roles.entity.ts
-│   ├── documents/
-│   │   ├── documents.controller.ts
-│   │   ├── documents.module.ts
-│   │   ├── documents.service.ts
-│   │   ├── dto/
-│   │   │   ├── create-document.dto.ts
-│   │   │   ├── update-document.dto.ts
-│   │   ├── entities/
-│   │   │   ├── document.entity.ts
-│   ├── uploads/
-│   ├── app.module.ts
-│   ├── main.ts
-│── config/
-│   ├── database.config.ts
-│── .env
-│── package.json
-│── tsconfig.json
-│── README.md
-  
-## Project setup
+ # **NestJS File Upload System with Python FastAPI Integration**
 
-```bash
-$ npm install
-```
+![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![TypeORM](https://img.shields.io/badge/TypeORM-FE0902?style=for-the-badge&logo=typeorm&logoColor=white)
 
-## Compile and run the project
+This project is a **NestJS-based file upload system** integrated with a **Python FastAPI server** for file processing. It allows users to upload, update, and delete documents, with role-based access control and JWT authentication. The Python FastAPI server handles file uploads and enforces a maximum file size limit of 10MB.
 
-```bash
-# development
-$ npm run start
+---
 
-# watch mode
-$ npm run start:dev
+## **Features**
+- **User Management**:
+  - Create, update, delete, and retrieve users.
+  - Assign roles to users (e.g., `admin`, `editor`, `viewer`).
+- **Authentication**:
+  - JWT-based authentication for secure access.
+  - Role-based access control (RBAC).
+- **Document Management**:
+  - Upload, update, and delete documents.
+  - Store document metadata in a PostgreSQL database.
+- **File Processing**:
+  - Integrates with a Python FastAPI server for file uploads.
+  - Enforces a maximum file size limit of 10MB.
 
-# production mode
-$ npm run start:prod
-```
+---
 
-## Run tests
+## **Technologies Used**
+- **Backend**:
+  - NestJS (Node.js framework).
+  - TypeORM (ORM for database operations).
+  - PostgreSQL (Relational database).
+  - JWT (JSON Web Tokens for authentication).
+- **File Processing**:
+  - Python FastAPI (Handles file uploads and validation).
+- **Tools**:
+  - bcrypt (Password hashing).
+  - class-validator (Input validation).
+  - Multer (File upload handling in NestJS).
 
-```bash
-# unit tests
-$ npm run test
+---
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
- 
-
-## Support
-
-N 
+## **Project Structure**
+```src/
+├── auth/ # Authentication module (JWT, roles, guards)
+├── config/ # Configuration files (database, environment variables)
+├── documents/ # Document management module (upload, update, delete)
+├── users/ # User management module (CRUD operations, role assignment)
+├── app.module.ts # Root module
+└── main.ts # Application entry point
+upload_file.py # Python FastAPI server for file uploads```
